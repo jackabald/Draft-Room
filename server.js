@@ -14,6 +14,7 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3001;
+const usernames = {};
 
 io.on("connection", (socket) => {
   console.log("New client connected");
@@ -35,8 +36,13 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("username", (username) => {
+    usernames[socket.id] = username;
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected");
+    delete usernames[socket.id]; // remove username when user disconnects
   });
 });
 
