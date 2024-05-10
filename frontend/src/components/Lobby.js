@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:3001", {
-  withCredentials: true,
-});
+import socket from "../socket"; // shared socket instance
 
 function JoinGame() {
   const [code, setCode] = useState("");
   const [gameCode, setGameCode] = useState(null);
+  const [players, setPlayers] = useState([]);
 
+  // Handle initial setup and listen for game updates
   useEffect(() => {
     socket.on("gameCodeGenerated", (code) => {
       setGameCode(code);
@@ -16,24 +14,31 @@ function JoinGame() {
 
     socket.on("joinedGame", (code) => {
       console.log(`Joined game with code: ${code}`);
-      // Navigate to game room or similar action
+    });
+
+    socket.on("updatePlayerList", (playerList) => {
+      setPlayers(playerList);
     });
 
     socket.on("errorJoining", (message) => {
       alert(message);
     });
 
+    // Cleanup listeners when the component is unmounted
     return () => {
       socket.off("gameCodeGenerated");
       socket.off("joinedGame");
+      socket.off("updatePlayerList");
       socket.off("errorJoining");
     };
   }, []);
 
+  // Emit game creation event to the server
   const handleCreateGame = () => {
     socket.emit("createGame");
   };
 
+  // Emit game joining event to the server
   const handleJoinGame = () => {
     socket.emit("joinGame", code);
   };
@@ -49,7 +54,44 @@ function JoinGame() {
         placeholder="Enter game code"
       />
       <button onClick={handleJoinGame}>Join Game</button>
+
+      {/* Display list of players in the current game */}
+      {players.length > 0 && (
+        <ul style={{ listStyleType: "none", padding: 0 }}>
+          {players.map((player, index) => (
+            <li
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "5px",
+                borderBottom: "1px solid #ccc", // Separating line between items
+              }}
+            >
+              {/* Number or index marker */}
+              <div
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  backgroundColor: "#007bff", // Example color (blue)
+                  color: "white",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginRight: "10px",
+                }}
+              >
+                {index + 1} {/* Display player number */}
+              </div>
+              {/* Player's name */}
+              <div>{player}</div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
+
 export default JoinGame;

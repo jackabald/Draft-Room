@@ -1,35 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:3001", {
-  withCredentials: true,
-});
+import socket from "../socket"; // shared socket instance
 
 function StartScreen() {
   const navigate = useNavigate();
+  const [username, setUsername] = useState("");
 
-  const handleStart = () => {
-    navigate("/join"); // Redirect to the JoinGame component
+  // Update the username state whenever the input changes
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
   };
 
-  const handleUsername = () => {
-    const nameInput = document.getElementById("username");
-    const name = nameInput.value;
-    if (name) {
-      socket.emit("username", name);
+  const handleChoose = () => {
+    // Emit the chosen username, or default to "guest" if it's empty
+    if (username) {
+      socket.emit("username", username);
     } else {
       socket.emit("username", "guest");
     }
+
+    // Navigate to the JoinGame screen after choosing the username
+    navigate("/join");
   };
 
   return (
     <div>
-      <h1>Welcome to the Drafting Game</h1>
+      <h1>Welcome to Wavelength</h1>
       <h2>Choose a name</h2>
-      <input type="text" id="username"></input>
-      <button onClick={handleUsername}>Choose</button>
-      <button onClick={handleStart}>Start</button>
+      <input
+        type="text"
+        id="username"
+        value={username}
+        onChange={handleUsernameChange}
+        placeholder="Enter your username"
+      />
+      <button onClick={handleChoose}>Choose</button>
     </div>
   );
 }
