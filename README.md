@@ -1,5 +1,5 @@
 # WHAT I AM USING:
-React, Node.js, UUID, socket.io, express, 
+React, Node.js, socket.io, express, 
 
 # Getting Started with Create React App
 
