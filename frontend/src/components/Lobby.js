@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import socket from "../socket"; // shared socket instance
 
 function JoinGame() {
+  const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [gameCode, setGameCode] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -43,6 +45,10 @@ function JoinGame() {
     socket.emit("joinGame", code);
   };
 
+  const handleStartGame = () => {
+    navigate("/game");
+  };
+
   return (
     <div>
       <button onClick={handleCreateGame}>Create Game</button>
@@ -54,6 +60,7 @@ function JoinGame() {
         placeholder="Enter game code"
       />
       <button onClick={handleJoinGame}>Join Game</button>
+      <button onClick={handleStartGame}>Start Game</button>
 
       {/* Display list of players in the current game */}
       {players.length > 0 && (
