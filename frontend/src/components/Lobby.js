@@ -7,19 +7,26 @@ function JoinGame() {
   const [code, setCode] = useState("");
   const [gameCode, setGameCode] = useState(null);
   const [players, setPlayers] = useState([]);
+  const [isLeader, setIsLeader] = useState(false);
 
   // Handle initial setup and listen for game updates
   useEffect(() => {
-    socket.on("gameCodeGenerated", (code) => {
+    socket.on("gameCodeGenerated", (code, leader) => {
       setGameCode(code);
+      setIsLeader(leader);
     });
 
-    socket.on("joinedGame", (code) => {
+    socket.on("joinedGame", (code, leader) => {
       console.log(`Joined game with code: ${code}`);
+      setIsLeader(leader);
     });
 
     socket.on("updatePlayerList", (playerList) => {
       setPlayers(playerList);
+    });
+
+    socket.on("gameStarted", () => {
+      navigate("/game"); // Navigate to the game page when the game starts
     });
 
     socket.on("errorJoining", (message) => {
@@ -31,9 +38,10 @@ function JoinGame() {
       socket.off("gameCodeGenerated");
       socket.off("joinedGame");
       socket.off("updatePlayerList");
+      socket.off("gameStarted");
       socket.off("errorJoining");
     };
-  }, []);
+  }, [navigate]);
 
   // Emit game creation event to the server
   const handleCreateGame = () => {
@@ -46,7 +54,7 @@ function JoinGame() {
   };
 
   const handleStartGame = () => {
-    navigate("/game");
+    socket.emit("startGame",gameCode);
   };
 
   return (

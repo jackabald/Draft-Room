@@ -13,9 +13,8 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3001;
-
-// Mapping of socket IDs to usernames
 const usernames = {};
+const games = {};
 
 // Function to retrieve usernames for a specific room
 function getUsernamesInRoom(room) {
@@ -39,9 +38,11 @@ io.on("connection", (socket) => {
   // Event for creating a new game
   socket.on("createGame", () => {
     const gameCode = Math.floor(1000 + Math.random() * 9000).toString();
+    games[gameCode] = { leader: socket.id, players: [socket.id]};
     console.log(`Game created with code: ${gameCode} by client ${socket.id}`);
     socket.join(gameCode);
     socket.emit("gameCodeGenerated", gameCode);
+    io.to(gameCode).emit("updatePlaterList", getUsernamesInRoom(gameCode));
   });
 
   // Event for joining a game
@@ -62,22 +63,28 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Start the game by the lobby leader
+  socket.on("startGame", (gameCode) => {
+    if (games[gameCode] && socket.id === games[gameCode].leader){
+      io.to(gameCode).emit("gameStarted"); // notify game has started
+      console.log("Game ${gameCode} started by leader ${socket.id}");
+    }
+  })
+
   // Handle client disconnection and cleanup
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
-    for (const room of socket.rooms) {
-      if (room !== socket.id) {
-        socket.leave(room);
-        const players = getUsernamesInRoom(room);
-        console.log(
-          `Updated players in room ${room} after client ${socket.id} disconnected:`,
-          players
-        );
-        io.to(room).emit("updatePlayerList", players);
+    Object.keys(games).forEach((gameCode) => {
+      if (games[gameCode].players.includes(socket.id)) {
+        games[gameCode].players = games[gameCode].players.filter(id => id !== socket.id);
+        if (games[gameCode].leader === socket.id && games[gameCode].players.length > 0) {
+          games[gameCode].leader = games[gameCode].players[0]; // Assign new leader if leader leaves
+          io.to(games[gameCode].leader).emit("assignLeader");
+        }
+        io.to(gameCode).emit("updatePlayerList", getUsernamesInRoom(gameCode));
       }
-    }
-    // Remove the username associated with the disconnected client
-    delete usernames[socket.id];
+    });
+    delete usernames[socket.id]; // Remove the username
   });
 });
 
