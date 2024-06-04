@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
     console.log(`Game created with code: ${gameCode} by client ${socket.id}`);
     socket.join(gameCode);
     socket.emit("gameCodeGenerated", gameCode);
-    io.to(gameCode).emit("updatePlaterList", getUsernamesInRoom(gameCode));
+    io.to(gameCode).emit("updatePlayerList", getUsernamesInRoom(gameCode));
   });
 
   // Event for joining a game
