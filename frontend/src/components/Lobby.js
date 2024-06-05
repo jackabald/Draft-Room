@@ -25,7 +25,8 @@ function JoinGame() {
     });
 
     socket.on("gameStarted", () => {
-      navigate("/game"); // Navigate to the game page when the game starts
+      console.log(gameCode);
+      navigate("/game", { state: { gameCode } }); // Navigate to the game page when the game starts
     });
 
     socket.on("errorJoining", (message) => {
@@ -36,11 +37,11 @@ function JoinGame() {
     return () => {
       socket.off("gameCodeGenerated");
       socket.off("joinedGame");
-      socket.off("updatePlayerList");
       socket.off("gameStarted");
+      socket.off("updatePlayerList");
       socket.off("errorJoining");
     };
-  }, [navigate]);
+  }, [navigate, gameCode]);
 
   // Emit game creation event to the server
   const handleCreateGame = () => {
@@ -53,7 +54,7 @@ function JoinGame() {
   };
 
   const handleStartGame = () => {
-     socket.emit("startGame",gameCode);
+    socket.emit("startGame", gameCode);
   };
 
   return (
