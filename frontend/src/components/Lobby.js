@@ -17,7 +17,6 @@ function JoinGame() {
     });
 
     socket.on("joinedGame", (code, leader) => {
-      console.log(`Joined game with code: ${code}`);
       setIsLeader(leader);
     });
 
@@ -54,7 +53,7 @@ function JoinGame() {
   };
 
   const handleStartGame = () => {
-    socket.emit("startGame",gameCode);
+     socket.emit("startGame",gameCode);
   };
 
   return (

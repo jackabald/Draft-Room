@@ -1,24 +1,18 @@
-import React, { useState } from "react";
+import React from 'react';
 
-function SubmitPrompt({ onSubmitted }) {
-  const [prompt, setPrompt] = useState("");
-
-  const handleSubmit = () => {
-    console.log("Prompt submitted:", prompt); // Additional handling as needed
-    onSubmitted();
-  };
-
+function SubmitPrompt({ isGuesser, number }) {
   return (
     <div>
-      <input
-        type="text"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter a prompt"
-      />
-      <button onClick={handleSubmit}>Submit Prompt</button>
+      {isGuesser ? (
+        <p>You are the guesser. Your number is {number}.</p>
+      ) : (
+        <div>
+          <input type="text" placeholder="Enter your prompt" />
+          <button>Submit</button>
+        </div>
+      )}
     </div>
   );
 }
 
-export default SubmitPrompt;
+export default SubmitPrompt; 

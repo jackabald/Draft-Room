@@ -42,34 +42,43 @@ io.on("connection", (socket) => {
     console.log(`Game created with code: ${gameCode} by client ${socket.id}`);
     socket.join(gameCode);
     socket.emit("gameCodeGenerated", gameCode);
-    io.to(gameCode).emit("updatePlaterList", getUsernamesInRoom(gameCode));
+    io.to(gameCode).emit("updatePlayerList", getUsernamesInRoom(gameCode));
   });
 
   // Event for joining a game
   socket.on("joinGame", (gameCode) => {
     const room = io.sockets.adapter.rooms.get(gameCode);
     if (room && room.size > 0) {
-      socket.join(gameCode);
-      console.log(`Client ${socket.id} joined game ${gameCode}`);
-      socket.emit("joinedGame", gameCode);
-
-      // Emit updated list of players in the room
-      const players = getUsernamesInRoom(gameCode);
-      console.log(`Players in room ${gameCode}:`, players);
-      io.to(gameCode).emit("updatePlayerList", players);
+        socket.join(gameCode);
+        if (!games[gameCode].players.includes(socket.id)) {
+            games[gameCode].players.push(socket.id);
+        }
+        console.log(`Client ${socket.id} joined game ${gameCode}`);
+        console.log(`Current players in game ${gameCode}:`, games[gameCode].players);
+        io.to(gameCode).emit("updatePlayerList", getUsernamesInRoom(gameCode));
     } else {
-      console.log(`Invalid game code attempt by client ${socket.id}`);
-      socket.emit("errorJoining", "Invalid game code");
+        console.log(`Invalid game code attempt by client ${socket.id}`);
+        socket.emit("errorJoining", "Invalid game code");
     }
-  });
+});
 
-  // Start the game by the lobby leader
+
+  // Emitting the game started event and choosing the player who will view the number
   socket.on("startGame", (gameCode) => {
-    if (games[gameCode] && socket.id === games[gameCode].leader){
-      io.to(gameCode).emit("gameStarted"); // notify game has started
-      console.log("Game ${gameCode} started by leader ${socket.id}");
+    if (games[gameCode] && socket.id === games[gameCode].leader) {
+        if (games[gameCode].players.length < 2) { 
+            socket.emit("error", "Not enough players to start the game.");
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * games[gameCode].players.length);
+        const guesserId = games[gameCode].players[randomIndex];  
+        games[gameCode].guesser = guesserId;
+
+        io.to(gameCode).emit("gameStarted", { guesserId });  // Emitting as 'guesserId'
+        console.log(`Game ${gameCode} started. Guesser is ${guesserId}`);
     }
-  })
+});
+
 
   // Handle client disconnection and cleanup
   socket.on("disconnect", () => {
@@ -84,7 +93,7 @@ io.on("connection", (socket) => {
         io.to(gameCode).emit("updatePlayerList", getUsernamesInRoom(gameCode));
       }
     });
-    delete usernames[socket.id]; // Remove the username
+    delete usernames[socket.id];
   });
 });
 
