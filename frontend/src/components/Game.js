@@ -20,7 +20,7 @@ function Game() {
   });
 
   useEffect(() => {
-    const handleGameStarted = ({ guesserId }) => {
+    socket.on("updateGuesser", ({ guesserId }) => {
       console.log("Game started event received, Guesser ID:", guesserId);
       const isGuesser = socket.id === guesserId;
       const number = Math.floor(1 + Math.random() * 10);
@@ -28,33 +28,31 @@ function Game() {
       setIsGameStarted(true);
       setPhase(1);
       setGuesserState({ isGuesser, number });
-    };
+    });
 
-    socket.on("updateGuesser", handleGameStarted);
     return () => {
-      socket.off("updateGuesser", handleGameStarted);
+      socket.off("updateGuesser");
     };
   }, []);
 
-  const handleInitGame = () => {
-    socket.emit("initGame", gameCode);
-  };
+  useEffect (() => {
+    if(gameCode){
+      socket.emit("initGame", gameCode);
+    }
+  }, [gameCode]);
+  
 
   const handlePhaseChange = () => {
     setPhase(phase + 1);
   };
 
-  // if (!isGameStarted) {
-  //   return <div>Waiting for game to start...</div>;
-  // }
-
   return (
     <div>
-      <button onClick={handleInitGame}>begin</button>
       {phase === 1 && (
         <SubmitPrompt
           isGuesser={guesserState.isGuesser}
           number={guesserState.number}
+          onSubmit={handlePhaseChange}
         />
       )}
       {phase === 2 && (

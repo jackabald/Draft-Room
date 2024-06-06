@@ -1,6 +1,9 @@
 import React from 'react';
 
-function SubmitPrompt({ isGuesser, number }) {
+function SubmitPrompt({ isGuesser, number, onSubmit }) {
+  const handleSubmit = () => {
+    onSubmit();
+  }
   return (
     <div>
       {isGuesser ? (
@@ -8,7 +11,7 @@ function SubmitPrompt({ isGuesser, number }) {
       ) : (
         <div>
           <input type="text" placeholder="Enter your prompt" />
-          <button>Submit</button>
+          <button onClick={handleSubmit}>Submit</button>
         </div>
       )}
     </div>
