@@ -1,3 +1,6 @@
+# NOTICE
+I have implemented the backend multiplayer aspect and the beginnings of the game logic. I am taking a break from working on this due to time constraints with work and other projects I am working on.
+
 # WHAT I AM USING:
 React, Node.js, socket.io, express, 
 
